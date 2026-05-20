@@ -1,0 +1,32 @@
+{
+   "deleteConversations_cancel": {
+      "description": "Button text to cancel the current operation.",
+      "message": "Отменить"
+   },
+   "deleteN": {
+      "description": "Button text to delete a specific number of conversations. $COUNT$ is a placeholder.",
+      "message": "Удалить ($COUNT$)",
+      "placeholders": {
+         "count": {
+            "content": "$1",
+            "example": "5"
+         }
+      }
+   },
+   "deleteSelected": {
+      "description": "Button text to delete the conversations that are currently selected.",
+      "message": "Удалить выбранные"
+   },
+   "extensionDescription": {
+      "description": "The description of the extension.",
+      "message": "Множественный выбор и массовое удаление чатов Gemini."
+   },
+   "extensionName": {
+      "description": "The name of the extension.",
+      "message": "Gemini Mass Delete"
+   },
+   "extensionShortName": {
+      "description": "The short name of the extension.",
+      "message": "Mass Delete"
+   }
+}

@@ -1,0 +1,32 @@
+{
+   "deleteConversations_cancel": {
+      "description": "Button text to cancel the current operation.",
+      "message": "취소"
+   },
+   "deleteN": {
+      "description": "Button text to delete a specific number of conversations. $COUNT$ is a placeholder.",
+      "message": "삭제 ($COUNT$)",
+      "placeholders": {
+         "count": {
+            "content": "$1",
+            "example": "5"
+         }
+      }
+   },
+   "deleteSelected": {
+      "description": "Button text to delete the conversations that are currently selected.",
+      "message": "선택된 항목 삭제"
+   },
+   "extensionDescription": {
+      "description": "The description of the extension.",
+      "message": "Gemini 채팅을 다중 선택하여 일괄 삭제합니다."
+   },
+   "extensionName": {
+      "description": "The name of the extension.",
+      "message": "Gemini 대량 삭제"
+   },
+   "extensionShortName": {
+      "description": "The short name of the extension.",
+      "message": "대량 삭제"
+   }
+}

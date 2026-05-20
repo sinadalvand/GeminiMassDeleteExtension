@@ -1,0 +1,309 @@
+:root {
+  --gbd-blue: #1a73e8;
+  --gbd-red: #d93025;
+  --gbd-green: #34a853;
+  --gbd-grey-100: #f8f9fa;
+  --gbd-grey-200: #e8eaed;
+  --gbd-grey-300: #dadce0;
+  --gbd-grey-400: #bdc1c6;
+  --gbd-grey-500: #9aa0a6;
+  --gbd-grey-600: #80868b;
+  --gbd-grey-700: #5f6368;
+  --gbd-grey-800: #3c4043;
+  --gbd-grey-900: #202124;
+
+  --gbd-text-primary-light: var(--gbd-grey-900);
+  --gbd-text-primary-dark: var(--gbd-grey-200);
+  --gbd-text-secondary-light: var(--gbd-grey-700);
+  --gbd-text-secondary-dark: var(--gbd-grey-500);
+
+  --gbd-bg-primary: var(--gbd-grey-100);
+  --gbd-text-primary: var(--gbd-text-primary-light);
+  --gbd-text-secondary: var(--gbd-text-secondary-light);
+  --gbd-border-color: var(--gbd-grey-300);
+  --gbd-hover-bg: rgba(60, 64, 67, 0.08);
+  --gbd-focus-ring: var(--gbd-blue);
+  --gbd-progress-track: rgba(0, 0, 0, 0.08);
+  --gbd-progress-indicator: var(--gbd-blue);
+  --gbd-hover-opacity: 0.08;
+  --gbd-focus-opacity: 0.12;
+
+  --gbd-radius-sm: 4px;
+  --gbd-radius-md: 8px;
+  --gbd-radius-lg: 12px;
+  --gbd-radius-pill: 9999px;
+  
+  /* Progress bar base colors in RGB format */
+  --gbd-progress-rgb: 26, 115, 232; /* Blue */
+}
+
+.dark-theme, [data-theme=dark] {
+  --gbd-bg-primary: var(--gbd-grey-900);
+  --gbd-text-primary: var(--gbd-text-primary-dark);
+  --gbd-text-secondary: var(--gbd-text-secondary-dark);
+  --gbd-border-color: var(--gbd-grey-800);
+  --gbd-hover-bg: rgba(255, 255, 255, 0.08);
+  --gbd-progress-track: rgba(255, 255, 255, 0.12);
+  --gbd-focus-ring: #8ab4f8;
+  --gbd-progress-rgb: 138, 180, 248; /* Light Blue */
+}
+
+/* Gemini Mass Delete Integration UI Elements */
+
+/* 1. Container inside the button block */
+.gbd-controls-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 8px;
+  /* Prevent clicks inside our controls from bubbling to the collapsible button */
+  pointer-events: auto;
+}
+
+/* 2. Modern Close Button */
+.gbd-close-button {
+  background: transparent;
+  border: none;
+  color: var(--gbd-text-secondary);
+  padding: 4px;
+  display: none; /* Hidden by default, shown in selection mode */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  width: 26px;
+  height: 26px;
+}
+
+.gbd-close-button:hover {
+  background-color: var(--gbd-hover-bg);
+  color: var(--gbd-text-primary);
+  transform: scale(1.08);
+}
+
+.gbd-close-button:active {
+  transform: scale(0.92);
+}
+
+/* 3. Modern Trash Bin Button */
+.gbd-trash-button {
+  background: transparent;
+  border: none;
+  color: var(--gbd-red);
+  padding: 4px;
+  display: none; /* Hidden by default, shown when items are selected */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  width: 26px;
+  height: 26px;
+}
+
+.gbd-trash-button:hover {
+  background-color: rgba(217, 48, 37, 0.12);
+  transform: scale(1.08);
+}
+
+.gbd-trash-button:active {
+  transform: scale(0.92);
+}
+
+.dark-theme .gbd-trash-button:hover, [data-theme=dark] .gbd-trash-button:hover {
+  background-color: rgba(242, 139, 130, 0.15);
+}
+
+/* 4. Modern Checkbox for List Items */
+.gbd-chat-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--gbd-text-secondary);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  position: relative;
+  margin: auto 8px auto 8px;
+  display: none; /* Controlled by JS visibility */
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.gbd-chat-checkbox:hover {
+  border-color: var(--gbd-blue);
+  transform: scale(1.08);
+}
+
+.gbd-chat-checkbox:checked {
+  background-color: var(--gbd-blue);
+  border-color: var(--gbd-blue);
+}
+
+.gbd-chat-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  top: 1px;
+  left: 5px;
+}
+
+/* Smooth transition when inserting checkboxes */
+gem-nav-list-item {
+  display: flex !important;
+  align-items: center;
+}
+
+gem-nav-list-item a {
+  flex-grow: 1;
+}
+
+/* Custom Injected Select/Deselect Menu Item */
+.gbd-select-menu-item {
+  color: var(--gbd-text-primary, inherit) !important;
+  font-family: inherit !important;
+}
+
+.gbd-select-menu-item svg {
+  color: var(--gbd-text-secondary, inherit);
+}
+
+.gbd-select-menu-item:hover svg {
+  color: var(--gbd-text-primary, inherit);
+}
+
+/* Long press flash feedback */
+.gbd-longpress-flash {
+  animation: gbd-flash 0.3s ease-out;
+}
+
+@keyframes gbd-flash {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: var(--gbd-hover-bg);
+    transform: scale(0.97);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Select All Checkbox before Recents */
+.gbd-select-all-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--gbd-text-secondary);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  position: relative;
+  margin-right: 8px;
+  display: none; /* Controlled by JS visibility */
+  vertical-align: middle;
+  flex-shrink: 0;
+  pointer-events: auto; /* Allow click events on it */
+}
+
+.gbd-select-all-checkbox:hover {
+  border-color: var(--gbd-blue);
+  transform: scale(1.08);
+}
+
+.gbd-select-all-checkbox:checked {
+  background-color: var(--gbd-blue);
+  border-color: var(--gbd-blue);
+}
+
+.gbd-select-all-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  top: 1px;
+  left: 5px;
+}
+
+.gbd-select-all-checkbox:indeterminate {
+  background-color: var(--gbd-text-secondary);
+  border-color: var(--gbd-text-secondary);
+}
+
+.gbd-select-all-checkbox:indeterminate::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 2px;
+  background: white;
+  top: 6px;
+  left: 2px;
+}
+
+/* Hide overlay container during bulk deletion to prevent visual clutter/lag */
+body.gbd-deleting-active .cdk-overlay-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Progress bar container state when active during deletion */
+.gbd-controls-container.gbd-progress-active {
+  margin-left: 12px;
+  flex-grow: 1;
+  border-radius: 9999px;
+  padding: 0 4px 0 12px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+
+#gbd-progress-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gbd-text-primary);
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Disabled state for checkboxes when deletion is in progress */
+.gbd-chat-checkbox:disabled,
+.gbd-select-all-checkbox:disabled {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+.gbd-chat-checkbox:disabled:not(:checked),
+.gbd-select-all-checkbox:disabled:not(:checked) {
+  background-color: transparent !important;
+  border-color: var(--gbd-grey-500) !important;
+}
+
+.gbd-chat-checkbox:disabled:checked,
+.gbd-select-all-checkbox:disabled:checked,
+.gbd-select-all-checkbox:disabled:indeterminate {
+  background-color: var(--gbd-grey-500) !important;
+  border-color: var(--gbd-grey-500) !important;
+}
+
+
+
+

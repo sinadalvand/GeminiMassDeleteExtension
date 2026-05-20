@@ -1,0 +1,32 @@
+{
+   "deleteConversations_cancel": {
+      "description": "Button text to cancel the current operation.",
+      "message": "İptal"
+   },
+   "deleteN": {
+      "description": "Button text to delete a specific number of conversations. $COUNT$ is a placeholder.",
+      "message": "Sil ($COUNT$)",
+      "placeholders": {
+         "count": {
+            "content": "$1",
+            "example": "5"
+         }
+      }
+   },
+   "deleteSelected": {
+      "description": "Button text to delete the conversations that are currently selected.",
+      "message": "Seçilenleri sil"
+   },
+   "extensionDescription": {
+      "description": "The description of the extension.",
+      "message": "Çoklu Gemini sohbetlerini seçin ve toplu olarak silin."
+   },
+   "extensionName": {
+      "description": "The name of the extension.",
+      "message": "Toplu Gemini Silme"
+   },
+   "extensionShortName": {
+      "description": "The short name of the extension.",
+      "message": "Toplu Silme"
+   }
+}

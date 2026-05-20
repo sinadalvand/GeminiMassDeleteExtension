@@ -1,0 +1,32 @@
+{
+   "deleteConversations_cancel": {
+      "description": "Button text to cancel the current operation.",
+      "message": "Cancelar"
+   },
+   "deleteN": {
+      "description": "Button text to delete a specific number of conversations. $COUNT$ is a placeholder.",
+      "message": "Eliminar ($COUNT$)",
+      "placeholders": {
+         "count": {
+            "content": "$1",
+            "example": "5"
+         }
+      }
+   },
+   "deleteSelected": {
+      "description": "Button text to delete the conversations that are currently selected.",
+      "message": "Eliminar seleccionados"
+   },
+   "extensionDescription": {
+      "description": "The description of the extension.",
+      "message": "Selecciona múltiples chats de Gemini y elimínalos en lote."
+   },
+   "extensionName": {
+      "description": "The name of the extension.",
+      "message": "Eliminación Masiva para Gemini"
+   },
+   "extensionShortName": {
+      "description": "The short name of the extension.",
+      "message": "Eliminación Masiva"
+   }
+}
