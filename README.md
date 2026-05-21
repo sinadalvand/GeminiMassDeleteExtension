@@ -59,6 +59,10 @@ Gemini Mass Delete Extension/
 └── _locales/           # Translation folders for 35 supported languages
 ```
 
+## Contributing
+
+Contributions, issues, and feature requests are welcome! I highly appreciate any support or contribution you want to make to help improve this extension. Feel free to open an issue or submit a pull request.
+
 ## License
 
 This project is licensed under the MIT License.
