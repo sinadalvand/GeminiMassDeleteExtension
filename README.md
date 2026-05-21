@@ -62,8 +62,20 @@ Gemini Mass Delete Extension/
 │   └── injector.js     # Content script managing UI injection and deletion loop
 ├── style/
 │   └── tokens.css      # Custom styles for checkboxes, buttons, and progress bar
-└── _locales/           # Translation folders for 35 supported languages
+├── _locales/           # Translation folders for 35 supported languages
+├── art/                # Screenshots for documentation
+└── dev/                # Development directory containing build scripts and packages
+    ├── zip_extension.py # Python script to build the clean production zip
+    └── Gemini_Mass_Delete_Extension.zip # Clean compiled production zip file (ignored by Git)
 ```
+
+## Development & Packaging
+
+To package a clean production build of the extension for Chrome Web Store uploads, run the Python zip script from the root of the project:
+```bash
+python3 dev/zip_extension.py
+```
+This script automatically bundles only the production-ready extension files inside `dev/Gemini_Mass_Delete_Extension.zip`. All development assets, documentation files, and git configuration files (`art/`, `dev/`, `README.md`, `LICENSE`, `.git/`, `.gitignore`, etc.) are automatically excluded to keep the package minimal.
 
 ## Contributing
 
