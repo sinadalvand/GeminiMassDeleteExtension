@@ -397,6 +397,12 @@
     isMultiSelectActive = false;
     debugLog("Exiting multi-select mode");
 
+    // Uncheck all checkboxes
+    const checkboxes = document.querySelectorAll(".gbd-chat-checkbox");
+    checkboxes.forEach((cb) => {
+      cb.checked = false;
+    });
+
     // Remove checkboxes
     removeCheckboxes();
     stopObservingChats();
