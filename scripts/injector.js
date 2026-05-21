@@ -11,6 +11,18 @@
     // console.warn("[GBD Injector Warning]", ...args);
   };
 
+  const safeGetMessage = (messageName, substitutions = null, fallback = "") => {
+    try {
+      if (typeof chrome !== "undefined" && chrome.i18n && typeof chrome.i18n.getMessage === "function") {
+        const msg = chrome.i18n.getMessage(messageName, substitutions);
+        if (msg) return msg;
+      }
+    } catch (e) {
+      // Extension context might be invalidated
+    }
+    return fallback;
+  };
+
   let isMultiSelectActive = false;
   let chatObserver = null;
   let headerObserver = null;
@@ -244,7 +256,7 @@
     const trashBtn = document.createElement("button");
     trashBtn.id = "gbd-trash-btn";
     trashBtn.className = "gbd-trash-button";
-    trashBtn.title = chrome.i18n.getMessage("deleteSelected") || "Delete selected";
+    trashBtn.title = safeGetMessage("deleteSelected", null, "Delete selected");
     trashBtn.innerHTML = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -261,7 +273,7 @@
     const closeBtn = document.createElement("button");
     closeBtn.id = "gbd-close-btn";
     closeBtn.className = "gbd-close-button";
-    closeBtn.title = chrome.i18n.getMessage("deleteConversations_cancel") || "Cancel";
+    closeBtn.title = safeGetMessage("deleteConversations_cancel", null, "Cancel");
     closeBtn.innerHTML = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -464,7 +476,7 @@
     if (trashBtn) {
       if (checkedCount > 0) {
         trashBtn.style.display = "flex";
-        trashBtn.title = chrome.i18n.getMessage("deleteN", [String(checkedCount)]) || `Delete (${checkedCount})`;
+        trashBtn.title = safeGetMessage("deleteN", [String(checkedCount)], `Delete (${checkedCount})`);
       } else {
         trashBtn.style.display = "none";
       }
