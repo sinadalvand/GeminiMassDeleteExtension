@@ -23,6 +23,12 @@
    "content_scripts": [
       {
          "js": [
+            "scripts/state.js",
+            "scripts/utils.js",
+            "scripts/storage.js",
+            "scripts/rating.js",
+            "scripts/deletion.js",
+            "scripts/selection.js",
             "scripts/injector.js"
          ],
          "matches": [
