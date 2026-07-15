@@ -46,11 +46,11 @@
 
   // Track which conversation item's options menu is being opened
   const trackActiveItem = (e) => {
-    const btn = e.target.closest('button[data-test-id="actions-menu-button"]') ||
-                e.target.closest('gem-icon-button[data-test-id="actions-menu-button"]') ||
-                e.target.closest('button[aria-label*="actions"]') ||
-                e.target.closest('button[aria-label*="menu"]') ||
-                e.target.closest('button[aria-label*="options"]') ||
+    const btn = e.target.closest('[data-test-id="actions-menu-button"]') ||
+                e.target.closest('button[aria-label*="actions" i]') ||
+                e.target.closest('button[aria-label*="menu" i]') ||
+                e.target.closest('button[aria-label*="options" i]') ||
+                e.target.closest('.gem-conversation-actions-menu-button') ||
                 e.target.closest('.actions-menu-button');
     if (btn) {
       activeConversationItem = btn.closest('gem-nav-list-item[data-test-id="conversation"]');
@@ -105,16 +105,50 @@
     }
   };
 
+  // Retrieve the active conversation item, with a fallback to expanded actions menus
+  const getActiveConversationItem = () => {
+    if (activeConversationItem && document.body.contains(activeConversationItem)) {
+      return activeConversationItem;
+    }
+    const expandedBtn = document.querySelector('gem-nav-list-item[data-test-id="conversation"] [aria-expanded="true"]') ||
+                        document.querySelector('[aria-haspopup][aria-expanded="true"]') ||
+                        document.querySelector('.gem-conversation-actions-menu-button[aria-expanded="true"]') ||
+                        document.querySelector('gem-icon-button[aria-expanded="true"]') ||
+                        document.querySelector('button[aria-expanded="true"]');
+    if (expandedBtn) {
+      return expandedBtn.closest('gem-nav-list-item[data-test-id="conversation"]');
+    }
+    return null;
+  };
+
   // Monitor DOM overlays for Material options menus
   const startOverlayObserver = () => {
     if (overlayObserver) return;
 
     overlayObserver = new MutationObserver(() => {
-      // Manage options menu injection
-      const menuContent = document.querySelector(".mat-mdc-menu-content");
-      if (menuContent && !menuContent.querySelector(".gbd-select-menu-item")) {
-        injectSelectMenuItem(menuContent);
-      }
+      // Manage options menu injection inside cdk-overlay-pane elements
+      const overlayPanes = document.querySelectorAll(".cdk-overlay-pane");
+      overlayPanes.forEach((pane) => {
+        const menuContent = pane.querySelector(".mat-mdc-menu-content") || 
+                            pane.querySelector('[role="menu"]') || 
+                            pane;
+
+        const selectBtn = menuContent.querySelector(".gbd-select-menu-item");
+        if (!selectBtn) {
+          const deleteBtn = menuContent.querySelector('[data-test-id="delete-button"]') ||
+                            menuContent.querySelector('button[aria-label*="delete"]') ||
+                            menuContent.querySelector('button.delete-btn');
+
+          if (deleteBtn) {
+            injectSelectMenuItem(menuContent);
+          }
+        } else {
+          // If selectBtn already exists, ensure it remains the last child of its parent
+          if (selectBtn.nextSibling) {
+            selectBtn.parentNode.appendChild(selectBtn);
+          }
+        }
+      });
 
       // Enforce collapse arrow visibility on DOM changes
       updateArrowVisibility();
@@ -144,14 +178,15 @@
 
     // Determine selection state
     let isChecked = false;
-    if (activeConversationItem) {
-      const cb = activeConversationItem.querySelector(".gbd-chat-checkbox");
+    const activeItem = getActiveConversationItem();
+    if (activeItem) {
+      const cb = activeItem.querySelector(".gbd-chat-checkbox");
       if (cb && cb.checked) {
         isChecked = true;
       }
     }
 
-    const labelText = isChecked ? "Deselect" : "Select";
+    const labelText = isChecked ? "Unselect" : "Select";
     const iconSvg = isChecked ? 
       `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
          <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
@@ -174,36 +209,52 @@
       e.preventDefault();
       e.stopPropagation();
 
+      const activeItem = getActiveConversationItem();
+
       // Dismiss options dropdown menu
       const backdrop = document.querySelector(".cdk-overlay-backdrop");
       if (backdrop) {
         backdrop.click();
       }
 
-      if (activeConversationItem) {
+      if (activeItem) {
+        const cb = activeItem.querySelector(".gbd-chat-checkbox");
+        let nextChecked = true;
+
         if (!isMultiSelectActive) {
           enterMultiSelectMode();
-          const cb = activeConversationItem.querySelector(".gbd-chat-checkbox");
-          if (cb) {
-            cb.checked = true;
+          const newCb = activeItem.querySelector(".gbd-chat-checkbox");
+          if (newCb) {
+            newCb.checked = true;
+            nextChecked = true;
             handleCheckboxChange();
           }
         } else {
-          const cb = activeConversationItem.querySelector(".gbd-chat-checkbox");
           if (cb) {
             cb.checked = !cb.checked;
+            nextChecked = cb.checked;
             handleCheckboxChange();
           }
+        }
+
+        // Dynamically update this menu item's label and icon to match the new state
+        const labelEl = selectBtn.querySelector(".gem-menu-item-label");
+        const iconEl = selectBtn.querySelector(".gem-menu-item-icon");
+        if (labelEl && iconEl) {
+          labelEl.textContent = nextChecked ? "Unselect" : "Select";
+          iconEl.innerHTML = nextChecked ? 
+            `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+               <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+             </svg>` :
+            `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+             </svg>`;
         }
       }
     });
 
-    // Insert under the Delete button
-    if (deleteBtn.nextSibling) {
-      menuContent.insertBefore(selectBtn, deleteBtn.nextSibling);
-    } else {
-      menuContent.appendChild(selectBtn);
-    }
+    // Insert as the last item in the options menu
+    deleteBtn.parentNode.appendChild(selectBtn);
     
     debugLog("Select menu item injected under Delete.");
   };
