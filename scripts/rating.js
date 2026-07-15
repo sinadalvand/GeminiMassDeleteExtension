@@ -16,22 +16,14 @@
     try {
       const state = savedState || await window.GbdStorage.getState();
       const count = currentCount !== null ? currentCount : state.gbd_use_count;
-      const isDev = window.isDevMode();
       
-      if (!isDev && state.gbd_already_rated) {
+      if (state.gbd_already_rated) {
         const box = document.getElementById("gbd-rating-box");
         if (box) box.remove();
         return;
       }
       
-      if (isDev) {
-        if (window.GbdState.devPromptDismissedThisSession) {
-          const box = document.getElementById("gbd-rating-box");
-          if (box) box.remove();
-        } else {
-          window.renderRatingPrompt(count);
-        }
-      } else if (count >= state.gbd_rating_dismissed_until) {
+      if (count >= state.gbd_rating_dismissed_until) {
         window.renderRatingPrompt(count);
       } else {
         const box = document.getElementById("gbd-rating-box");
@@ -84,12 +76,7 @@
       e.preventDefault();
       
       ratingBox.remove();
-      
-      if (window.isDevMode()) {
-        window.GbdState.devPromptDismissedThisSession = true;
-      } else {
-        await window.GbdStorage.dismissPrompt(currentCount);
-      }
+      await window.GbdStorage.dismissPrompt(currentCount);
     });
 
     // Make the entire rating box clickable to redirect to reviews
@@ -102,11 +89,7 @@
       e.stopPropagation();
       e.preventDefault();
       
-      if (window.isDevMode()) {
-        window.GbdState.devPromptDismissedThisSession = true;
-      } else {
-        await window.GbdStorage.markAsRated();
-      }
+      await window.GbdStorage.markAsRated();
       
       ratingBox.remove();
       window.open("https://chromewebstore.google.com/detail/gemini-mass-delete/jlbohokibiohlgkkahhpmcjehmhjdgpd/reviews", "_blank");

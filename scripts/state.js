@@ -6,7 +6,6 @@
     isMultiSelectActive: false,
     isDeleting: false,
     deletionAborted: false,
-    devPromptDismissedThisSession: false,
     lastClickedItemIndex: -1,
     activeConversationItem: null,
     longPressTimer: null,

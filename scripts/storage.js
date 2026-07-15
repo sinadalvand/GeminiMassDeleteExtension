@@ -49,11 +49,9 @@
     },
 
     getState: async () => {
-      const isDev = window.isDevMode();
-
       const defaultState = {
         gbd_use_count: 0,
-        gbd_rating_dismissed_until: isDev ? 0 : 3,
+        gbd_rating_dismissed_until: 3,
         gbd_already_rated: false
       };
       const saved = await window.GbdStorage.get(Object.keys(defaultState));
@@ -73,21 +71,11 @@
     },
 
     dismissPrompt: async (currentUses) => {
-      await window.GbdStorage.set({ gbd_rating_dismissed_until: currentUses + 15 });
+      await window.GbdStorage.set({ gbd_rating_dismissed_until: currentUses + 5 });
     },
 
     markAsRated: async () => {
       await window.GbdStorage.set({ gbd_already_rated: true });
     }
-  };
-
-  window.isDevMode = () => {
-    try {
-      if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getManifest) {
-        const manifest = chrome.runtime.getManifest();
-        return !manifest.update_url;
-      }
-    } catch (e) {}
-    return true; // Fallback for local files/testing
   };
 })();
