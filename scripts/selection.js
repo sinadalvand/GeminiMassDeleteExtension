@@ -384,6 +384,34 @@
     window.handleCheckboxChange();
   };
 
+  // Helper to maintain the index of the last active selection
+  const updateLastCheckedIndex = (allItems, currentIndex, isChecked) => {
+    if (isChecked) {
+      window.GbdState.lastClickedItemIndex = currentIndex;
+    } else {
+      if (window.GbdState.lastClickedItemIndex === currentIndex) {
+        // The last checked item was unchecked, find another checked item as fallback.
+        const checkedIndices = [];
+        allItems.forEach((el, idx) => {
+          const cb = el.querySelector(".gbd-chat-checkbox");
+          if (cb && cb.checked) {
+            checkedIndices.push(idx);
+          }
+        });
+        
+        if (checkedIndices.length > 0) {
+          // Fallback to the checked item closest to the old index
+          const closest = checkedIndices.reduce((prev, curr) => 
+            Math.abs(curr - currentIndex) < Math.abs(prev - currentIndex) ? curr : prev
+          );
+          window.GbdState.lastClickedItemIndex = closest;
+        } else {
+          window.GbdState.lastClickedItemIndex = -1;
+        }
+      }
+    }
+  };
+
   // Handle Ctrl/Shift clicks on conversation items in selection mode
   window.handleConversationClick = (e) => {
     if (!window.GbdState.isMultiSelectActive) return;
@@ -397,21 +425,12 @@
     const allItems = Array.from(document.querySelectorAll('gem-nav-list-item[data-test-id="conversation"]'));
     const currentIndex = allItems.indexOf(item);
 
-    const isCtrl = e.ctrlKey || e.metaKey;
     const isShift = e.shiftKey;
 
     const isClickOnCheckbox = e.target.closest('.gbd-chat-checkbox') !== null;
     const targetState = isClickOnCheckbox ? checkbox.checked : !checkbox.checked;
 
-    if (isCtrl) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      checkbox.checked = targetState;
-      window.handleCheckboxChange();
-      window.GbdState.lastClickedItemIndex = currentIndex;
-    } 
-    else if (isShift) {
+    if (isShift) {
       e.preventDefault();
       e.stopPropagation();
 
@@ -427,25 +446,34 @@
       }
 
       if (referenceIndex === -1) {
-        checkbox.checked = true;
-        window.handleCheckboxChange();
-        window.GbdState.lastClickedItemIndex = currentIndex;
+        setTimeout(() => {
+          checkbox.checked = true;
+          window.handleCheckboxChange();
+          window.GbdState.lastClickedItemIndex = currentIndex;
+        }, 0);
       } else {
         const start = Math.min(referenceIndex, currentIndex);
         const end = Math.max(referenceIndex, currentIndex);
 
-        for (let i = start; i <= end; i++) {
-          const cb = allItems[i].querySelector(".gbd-chat-checkbox");
-          if (cb) {
-            cb.checked = targetState;
+        setTimeout(() => {
+          for (let i = start; i <= end; i++) {
+            const cb = allItems[i].querySelector(".gbd-chat-checkbox");
+            if (cb) {
+              cb.checked = targetState;
+            }
           }
-        }
-        window.handleCheckboxChange();
-        window.GbdState.lastClickedItemIndex = currentIndex;
+          window.handleCheckboxChange();
+          updateLastCheckedIndex(allItems, currentIndex, targetState);
+        }, 0);
       }
     } 
     else {
-      window.GbdState.lastClickedItemIndex = currentIndex;
+      // Normal click: if it was directly on the checkbox, sync the last checked index
+      if (isClickOnCheckbox) {
+        updateLastCheckedIndex(allItems, currentIndex, checkbox.checked);
+      } else {
+        window.GbdState.lastClickedItemIndex = currentIndex;
+      }
     }
   };
 
