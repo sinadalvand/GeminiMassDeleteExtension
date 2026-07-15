@@ -4,13 +4,17 @@
 
 <h1 align="center">Gemini Mass Delete</h1>
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/gemini-mass-delete/jlbohokibiohlgkkahhpmcjehmhjdgpd?authuser=0&hl=en"><strong>Extension in Chrome Web Store</strong></a>
+</p>
+
 Gemini Mass Delete is a lightweight browser extension that lets you multi-select and delete multiple Gemini chat conversations in bulk with a single click. It integrates seamlessly into the Gemini sidebar interface with circular checkboxes, a "Select All" header toggle, and a long-press shortcut for quick list cleanup.
 
 ## Preview
 
 | Selection Mode & Activation | Deletion Progress & Control |
 |---|---|
-| ![Selection Mode](art/selection_mode.png) | ![Deletion Progress](art/deletion_progress.png) |
+| ![Selection Mode](art/screenshot1.png) | ![Deletion Progress](art/Screenshot2.png) |
 
 ## Features
 
