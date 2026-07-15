@@ -34,6 +34,7 @@
   let isDeleting = false;
   let deletionAborted = false;
   let devPromptDismissedThisSession = false;
+  let lastClickedItemIndex = -1;
 
   // Storage utility class for Gemini Bulk Delete using chrome.storage.local
   const GbdStorage = {
@@ -690,6 +691,7 @@
     if (!isMultiSelectActive) return;
     isMultiSelectActive = false;
     debugLog("Exiting multi-select mode");
+    lastClickedItemIndex = -1;
 
     // Uncheck all checkboxes
     const checkboxes = document.querySelectorAll(".gbd-chat-checkbox");
@@ -822,14 +824,24 @@
   const keyboardListener = (e) => {
     if (!isMultiSelectActive) return;
 
-    // Skip shortcuts if user is typing in inputs or contenteditable containers
+    // Skip shortcuts if user is typing in text inputs or contenteditable containers
     const targetTag = e.target.tagName;
-    if (targetTag === "INPUT" || targetTag === "TEXTAREA" || e.target.getAttribute("contenteditable") === "true") {
+    const isTextInput = (targetTag === "INPUT" && e.target.type !== "checkbox") || 
+                        targetTag === "TEXTAREA" || 
+                        e.target.getAttribute("contenteditable") === "true";
+    if (isTextInput) {
       return;
     }
 
+    // Ctrl + A or Cmd + A: Select all, or Deselect all if all are already selected
+    const isKeyA = e.key === "a" || e.key === "A" || e.code === "KeyA";
+    if (isKeyA && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      toggleSelectAll();
+    }
+
     // Shift + A: Select / Deselect all
-    if (e.key === "A" && e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    if (isKeyA && e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
       e.preventDefault();
       toggleSelectAll();
     }
@@ -850,6 +862,7 @@
     }
   };
 
+
   // Select or deselect all items
   const toggleSelectAll = () => {
     const checkboxes = document.querySelectorAll(".gbd-chat-checkbox");
@@ -861,6 +874,80 @@
     });
 
     handleCheckboxChange();
+  };
+
+  // Handle Ctrl/Shift clicks on conversation items in selection mode
+  const handleConversationClick = (e) => {
+    if (!isMultiSelectActive) return;
+
+    // Find the closest conversation list item
+    const item = e.target.closest('gem-nav-list-item[data-test-id="conversation"]');
+    if (!item) return;
+
+    const checkbox = item.querySelector(".gbd-chat-checkbox");
+    if (!checkbox) return;
+
+    const allItems = Array.from(document.querySelectorAll('gem-nav-list-item[data-test-id="conversation"]'));
+    const currentIndex = allItems.indexOf(item);
+
+    const isCtrl = e.ctrlKey || e.metaKey; // Support Cmd on Mac
+    const isShift = e.shiftKey;
+
+    // Detect if the user clicked on the checkbox itself.
+    // In Chrome, clicking a checkbox changes its 'checked' property BEFORE capturing click event listeners run.
+    // Since we call e.preventDefault(), we use the new checked state if they clicked it directly.
+    // If they clicked the surrounding list item container, the native checkbox state was not changed, so we manually invert it.
+    const isClickOnCheckbox = e.target.closest('.gbd-chat-checkbox') !== null;
+    const targetState = isClickOnCheckbox ? checkbox.checked : !checkbox.checked;
+
+    if (isCtrl) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      checkbox.checked = targetState;
+      handleCheckboxChange();
+      lastClickedItemIndex = currentIndex;
+    } 
+    else if (isShift) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      let referenceIndex = lastClickedItemIndex;
+      if (referenceIndex === -1) {
+        // Find the first checked checkbox in the list
+        const checkedIndex = allItems.findIndex((el) => {
+          const cb = el.querySelector(".gbd-chat-checkbox");
+          return cb && cb.checked;
+        });
+        if (checkedIndex !== -1) {
+          referenceIndex = checkedIndex;
+        }
+      }
+
+      if (referenceIndex === -1) {
+        // No previous selection: just select this one
+        checkbox.checked = true;
+        handleCheckboxChange();
+        lastClickedItemIndex = currentIndex;
+      } else {
+        // Select all between referenceIndex and currentIndex
+        const start = Math.min(referenceIndex, currentIndex);
+        const end = Math.max(referenceIndex, currentIndex);
+
+        for (let i = start; i <= end; i++) {
+          const cb = allItems[i].querySelector(".gbd-chat-checkbox");
+          if (cb) {
+            cb.checked = targetState;
+          }
+        }
+        handleCheckboxChange();
+        lastClickedItemIndex = currentIndex;
+      }
+    } 
+    else {
+      // Normal click: just update the last clicked index
+      lastClickedItemIndex = currentIndex;
+    }
   };
 
   // Helper to query element from selectors list
@@ -1299,6 +1386,9 @@
       longPressTriggered = false;
     }
   }, true);
+
+  // Handle capturing clicks for range selection
+  document.addEventListener("click", handleConversationClick, true);
 
   // Initialize the extension interface
   if (document.readyState === "loading") {
