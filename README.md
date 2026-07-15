@@ -44,8 +44,10 @@ Gemini Mass Delete is a lightweight browser extension that lets you multi-select
    - Either click the three-dot options menu next to any conversation and select **Select**.
    - Or click and hold down (long-press) on any conversation in the sidebar for `600ms`.
 3. **Select Chats**:
-   - Check the circular checkboxes next to the conversations you want to delete.
-   - Use the **Select All** checkbox in the "Recents" header to select all chats at once.
+   - **Click Checkboxes**: Check the circular checkboxes next to the conversations you want to delete.
+   - **Ctrl + A / Cmd + A**: Press `Ctrl+A` (or `Cmd+A` on Mac) when selection mode is active to quickly select all chats on the page. Pressing it again will deselect all chats.
+   - **Shift + Click**: Click a checkbox to select a chat, then hold down the `Shift` key and click another chat to select the entire range of chats in between (including the clicked item). If no previous chat was selected, Shift-clicking will simply check the clicked chat.
+   - **Header Toggle**: Use the **Select All** checkbox in the "Recents" header to toggle all chats at once.
 4. **Delete**:
    - Click the green trash bin icon at the top of the "Recents" section to begin deleting selected chats.
    - A progress bar will show the deletion count.
@@ -59,7 +61,13 @@ Gemini Mass Delete Extension/
 ├── manifest.json       # Extension configuration (Manifest V3)
 ├── assets/             # Extension icons (16px, 32px, 48px, 128px)
 ├── scripts/
-│   └── injector.js     # Content script managing UI injection and deletion loop
+│   ├── state.js        # Global state namespace object
+│   ├── utils.js        # DOM, click, and locale translation helpers
+│   ├── storage.js      # Chrome/localStorage persistence adapter
+│   ├── rating.js       # Web Store rating prompt rendering and actions
+│   ├── deletion.js     # Sequential chat deletion process loop
+│   ├── selection.js    # Keyboard shortcuts, mouse long-press, and range selections
+│   └── injector.js     # Bootstrapping entrypoint and overlay MutationObserver
 ├── style/
 │   └── tokens.css      # Custom styles for checkboxes, buttons, and progress bar
 ├── _locales/           # Translation folders for 35 supported languages
