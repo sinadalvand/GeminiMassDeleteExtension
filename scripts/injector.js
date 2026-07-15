@@ -33,6 +33,248 @@
   let blockNextClick = false;
   let isDeleting = false;
   let deletionAborted = false;
+  let devPromptDismissedThisSession = false;
+
+  // Storage utility class for Gemini Bulk Delete using chrome.storage.local
+  const GbdStorage = {
+    get: (keys) => {
+      return new Promise((resolve) => {
+        try {
+          if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get(keys, (items) => {
+              resolve(items || {});
+            });
+          } else {
+            // Fallback for non-extension environments (like local mockup or sample page)
+            const result = {};
+            keys.forEach(k => {
+              const val = localStorage.getItem(k);
+              try {
+                result[k] = val !== null ? JSON.parse(val) : undefined;
+              } catch (e) {
+                result[k] = val;
+              }
+            });
+            resolve(result);
+          }
+        } catch (e) {
+          resolve({});
+        }
+      });
+    },
+
+    set: (items) => {
+      return new Promise((resolve) => {
+        try {
+          if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.set(items, () => {
+              resolve();
+            });
+          } else {
+            Object.entries(items).forEach(([k, v]) => {
+              localStorage.setItem(k, JSON.stringify(v));
+            });
+            resolve();
+          }
+        } catch (e) {
+          resolve();
+        }
+      });
+    },
+
+    getState: async () => {
+      const isDev = (() => {
+        try {
+          if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getManifest) {
+            const manifest = chrome.runtime.getManifest();
+            return !manifest.update_url;
+          }
+        } catch (e) {}
+        return true; // Fallback for local files/testing
+      })();
+
+      const defaultState = {
+        gbd_use_count: 0,
+        gbd_rating_dismissed_until: isDev ? 0 : 3,
+        gbd_already_rated: false
+      };
+      const saved = await GbdStorage.get(Object.keys(defaultState));
+      
+      const parseVal = (val, def) => {
+        if (val === undefined || val === null) return def;
+        if (typeof def === "boolean") return val === true || val === "true";
+        if (typeof def === "number") return parseInt(val, 10);
+        return val;
+      };
+
+      return {
+        gbd_use_count: parseVal(saved.gbd_use_count, defaultState.gbd_use_count),
+        gbd_rating_dismissed_until: parseVal(saved.gbd_rating_dismissed_until, defaultState.gbd_rating_dismissed_until),
+        gbd_already_rated: parseVal(saved.gbd_already_rated, defaultState.gbd_already_rated)
+      };
+    },
+
+    dismissPrompt: async (currentUses) => {
+      await GbdStorage.set({ gbd_rating_dismissed_until: currentUses + 15 });
+    },
+
+    markAsRated: async () => {
+      await GbdStorage.set({ gbd_already_rated: true });
+    }
+  };
+
+  const isDevMode = () => {
+    try {
+      if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getManifest) {
+        const manifest = chrome.runtime.getManifest();
+        return !manifest.update_url;
+      }
+    } catch (e) {}
+    return true; // Fallback for local files/testing
+  };
+
+  const findActivityControlItem = () => {
+    const btn = document.querySelector('button[aria-label="Gemini Apps Activity"]') ||
+                document.querySelector('[data-test-id="desktop-bard-activity-control"]') ||
+                document.querySelector('gem-nav-list-item[title="Activity"]');
+    if (btn) {
+      return btn.closest('gem-nav-list-item') || btn;
+    }
+    return null;
+  };
+
+  const checkAndShowRatingPrompt = async (currentCount = null, savedState = null) => {
+    try {
+      const state = savedState || await GbdStorage.getState();
+      const count = currentCount !== null ? currentCount : state.gbd_use_count;
+      const isDev = isDevMode();
+      
+      if (!isDev && state.gbd_already_rated) {
+        const box = document.getElementById("gbd-rating-box");
+        if (box) box.remove();
+        return;
+      }
+      
+      if (isDev) {
+        if (devPromptDismissedThisSession) {
+          const box = document.getElementById("gbd-rating-box");
+          if (box) box.remove();
+        } else {
+          renderRatingPrompt(count);
+        }
+      } else if (count >= state.gbd_rating_dismissed_until) {
+        renderRatingPrompt(count);
+      } else {
+        const box = document.getElementById("gbd-rating-box");
+        if (box) box.remove();
+      }
+    } catch (e) {
+      debugWarn("Error showing rating prompt:", e);
+    }
+  };
+
+  const renderRatingPrompt = (currentCount) => {
+    if (document.getElementById("gbd-rating-box")) {
+      return;
+    }
+
+    const activityItem = findActivityControlItem();
+    if (!activityItem) {
+      // Retry in a bit if container not loaded yet
+      setTimeout(() => renderRatingPrompt(currentCount), 1000);
+      return;
+    }
+
+    const ratingBox = document.createElement("div");
+    ratingBox.id = "gbd-rating-box";
+    ratingBox.className = "gbd-rating-container";
+    
+    ratingBox.innerHTML = `
+      <button id="gbd-rating-close-btn" class="gbd-rating-close" title="Dismiss">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <div class="gbd-rating-title title-text gds-body-s">Enjoying Gemini Mass Delete? Rate us!</div>
+      <div class="gbd-stars-container">
+        ${[1, 2, 3, 4, 5].map(star => `
+          <svg class="gbd-star-icon" data-value="${star}" viewBox="0 0 24 24" width="22" height="22">
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        `).join("")}
+      </div>
+    `;
+
+    // Insert directly above the Activity list item
+    activityItem.parentNode.insertBefore(ratingBox, activityItem);
+
+    // Close button: dismiss for 15 more uses
+    const closeBtn = ratingBox.querySelector("#gbd-rating-close-btn");
+    closeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      
+      ratingBox.remove();
+      
+      if (isDevMode()) {
+        devPromptDismissedThisSession = true;
+      } else {
+        await GbdStorage.dismissPrompt(currentCount);
+      }
+    });
+
+    // Make the entire rating box clickable to redirect to reviews
+    ratingBox.addEventListener("click", async (e) => {
+      // Ignore clicks on the close button (handled by closeBtn listener)
+      if (e.target.closest("#gbd-rating-close-btn")) {
+        return;
+      }
+      
+      e.stopPropagation();
+      e.preventDefault();
+      
+      if (isDevMode()) {
+        devPromptDismissedThisSession = true;
+      } else {
+        await GbdStorage.markAsRated();
+      }
+      
+      ratingBox.remove();
+      window.open("https://chromewebstore.google.com/detail/gemini-mass-delete/jlbohokibiohlgkkahhpmcjehmhjdgpd/reviews", "_blank");
+    });
+
+    // Stars hover effects
+    const stars = ratingBox.querySelectorAll(".gbd-star-icon");
+    stars.forEach(star => {
+      star.addEventListener("mouseover", () => {
+        const val = parseInt(star.dataset.value, 10);
+        stars.forEach(s => {
+          const sVal = parseInt(s.dataset.value, 10);
+          if (sVal <= val) {
+            s.classList.add("hovered");
+          } else {
+            s.classList.remove("hovered");
+          }
+        });
+      });
+
+      star.addEventListener("mouseout", () => {
+        stars.forEach(s => s.classList.remove("hovered"));
+      });
+    });
+  };
+
+  const handleExtensionUsed = async () => {
+    try {
+      const state = await GbdStorage.getState();
+      const newCount = state.gbd_use_count + 1;
+      await GbdStorage.set({ gbd_use_count: newCount });
+      debugLog(`Extension used ${newCount} times.`);
+      checkAndShowRatingPrompt(newCount, state);
+    } catch (e) {
+      debugWarn("Error in handleExtensionUsed:", e);
+    }
+  };
 
   // Load stylesheet dynamically
   if (!document.getElementById("gbd-tokens-stylesheet")) {
@@ -316,6 +558,7 @@
     trashBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
+      handleExtensionUsed();
       startDeletionProcess();
     });
     container.appendChild(trashBtn);
@@ -559,6 +802,7 @@
         handleCheckboxChange();
         updateArrowVisibility();
       }
+      checkAndShowRatingPrompt();
     });
 
     chatObserver.observe(container, {
@@ -1061,10 +1305,12 @@
     document.addEventListener("DOMContentLoaded", () => {
       waitForHeader();
       startOverlayObserver();
+      checkAndShowRatingPrompt();
     });
   } else {
     waitForHeader();
     startOverlayObserver();
+    checkAndShowRatingPrompt();
   }
 
 })();
