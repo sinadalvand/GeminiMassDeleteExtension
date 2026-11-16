@@ -4,7 +4,7 @@
 
   // Toggle native collapse arrow icon visibility
   window.updateArrowVisibility = () => {
-    const targetBtn = document.querySelector('button[data-test-id="expandable-section-toggle"][aria-controls="sidenav-section-content-chats"]');
+    const targetBtn = window.getChatsHeaderButton();
     if (!targetBtn) return;
 
     const arrowIcon = targetBtn.querySelector(".toggle-icon") || 
@@ -64,9 +64,12 @@
 
   // Inject Close button and Trash bin inside the Recents button block
   window.injectControls = (targetBtn) => {
-    if (document.querySelector(".gbd-controls-container")) {
-      return; // Already injected
+    if (targetBtn.querySelector(".gbd-controls-container")) {
+      return; // Already injected into this header
     }
+
+    // Remove stale controls left in a previous (re-rendered) header
+    document.querySelectorAll(".gbd-controls-container, #gbd-select-all-cb").forEach((el) => el.remove());
 
     window.debugLog("Target header button found. Injecting controls...");
 
@@ -171,6 +174,11 @@
       }
       targetBtn.style.paddingInlineStart = "10px";
       targetBtn.style.paddingInlineEnd = "0";
+
+      // Re-injected while selection mode is active: sync control visibility
+      closeBtn.style.display = "flex";
+      window.handleCheckboxChange();
+      window.updateArrowVisibility();
     }
 
     window.debugLog("Controls injected.");
@@ -194,7 +202,7 @@
     window.updateArrowVisibility();
     window.updateSelectAllState();
 
-    const targetBtn = document.querySelector('button[data-test-id="expandable-section-toggle"][aria-controls="sidenav-section-content-chats"]');
+    const targetBtn = window.getChatsHeaderButton();
     if (targetBtn) {
       if (!targetBtn.dataset.origPaddingStart) {
         targetBtn.dataset.origPaddingStart = targetBtn.style.paddingInlineStart || window.getComputedStyle(targetBtn).paddingInlineStart;
@@ -234,7 +242,7 @@
     window.updateSelectAllState();
     window.updateArrowVisibility();
 
-    const targetBtn = document.querySelector('button[data-test-id="expandable-section-toggle"][aria-controls="sidenav-section-content-chats"]');
+    const targetBtn = window.getChatsHeaderButton();
     if (targetBtn) {
       if (targetBtn.dataset.origPaddingStart !== undefined) {
         targetBtn.style.paddingInlineStart = targetBtn.dataset.origPaddingStart;
@@ -341,7 +349,7 @@
     const targetTag = e.target.tagName;
     const isTextInput = (targetTag === "INPUT" && e.target.type !== "checkbox") || 
                         targetTag === "TEXTAREA" || 
-                        e.target.getAttribute("contenteditable") === "true";
+                        e.target.isContentEditable;
     if (isTextInput) {
       return;
     }
@@ -357,10 +365,16 @@
       window.toggleSelectAll();
     }
 
-    if (e.key === "Delete" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    // "Delete" (forward delete) or "Backspace" (labelled "delete" on Mac keyboards)
+    const isDeleteKey = e.key === "Delete" || e.key === "Backspace";
+    if (isDeleteKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
       const checkedCount = document.querySelectorAll(".gbd-chat-checkbox:checked").length;
       if (checkedCount > 0) {
         e.preventDefault();
+        e.stopPropagation();
+        // Ignore auto-repeat and presses while a deletion is already running
+        if (e.repeat || window.GbdState.isDeleting) return;
+        window.handleExtensionUsed();
         window.startDeletionProcess();
       }
     }

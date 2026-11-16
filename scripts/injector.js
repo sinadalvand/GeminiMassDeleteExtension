@@ -156,26 +156,21 @@
     window.debugLog("Select menu item injected under Delete.");
   };
 
-  // Wait for the Recents button block
+  // Wait for the chats section header button, and re-inject controls whenever
+  // Gemini re-renders it (Angular can recreate the header, dropping our controls)
   window.waitForHeader = () => {
-    const selector = 'button[data-test-id="expandable-section-toggle"][aria-controls="sidenav-section-content-chats"]';
-    
-    const headerBtn = document.querySelector(selector);
-    if (headerBtn) {
-      window.injectControls(headerBtn);
-      return;
-    }
+    const ensureControls = () => {
+      const headerBtn = window.getChatsHeaderButton();
+      if (headerBtn && !headerBtn.querySelector(".gbd-controls-container")) {
+        window.injectControls(headerBtn);
+      }
+    };
+
+    ensureControls();
 
     if (window.GbdState.headerObserver) window.GbdState.headerObserver.disconnect();
 
-    window.GbdState.headerObserver = new MutationObserver((mutations, observer) => {
-      const btn = document.querySelector(selector);
-      if (btn) {
-        window.injectControls(btn);
-        observer.disconnect();
-      }
-    });
-
+    window.GbdState.headerObserver = new MutationObserver(ensureControls);
     window.GbdState.headerObserver.observe(document.body, {
       childList: true,
       subtree: true

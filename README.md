@@ -55,9 +55,10 @@ Gemini Mass Delete is a lightweight browser extension that lets you multi-select
    - **Click Checkboxes**: Check the circular checkboxes next to the conversations you want to delete.
    - **Ctrl + A / Cmd + A**: Press `Ctrl+A` (or `Cmd+A` on Mac) when selection mode is active to quickly select all chats on the page. Pressing it again will deselect all chats.
    - **Shift + Click**: Click a checkbox to select a chat, then hold down the `Shift` key and click another chat to select the entire range of chats in between (including the clicked item). If no previous chat was selected, Shift-clicking will simply check the clicked chat.
-   - **Header Toggle**: Use the **Select All** checkbox in the "Recents" header to toggle all chats at once.
+   - **Header Toggle**: Use the **Select All** checkbox in the chats section header ("All") to toggle all chats at once.
 4. **Delete**:
-   - Click the green trash bin icon at the top of the "Recents" section to begin deleting selected chats.
+   - Click the green trash bin icon in the chats section header to begin deleting selected chats.
+   - Or press the **Delete** key (`delete` / `⌫` on Mac, `Delete` or `Backspace` on Windows/Linux) while chats are selected.
    - A progress bar will show the deletion count.
 5. **Cancel / Abort**:
    - Press **Escape** or click the close button (`X`) to cancel selection mode or abort an ongoing deletion.
@@ -91,7 +92,9 @@ To package a clean production build of the extension for Chrome Web Store upload
 ```bash
 python3 dev/zip_extension.py
 ```
-This script automatically bundles only the production-ready extension files inside `dev/Gemini_Mass_Delete_Extension.zip`. All development assets, documentation files, and git configuration files (`art/`, `dev/`, `README.md`, `LICENSE`, `.git/`, `.gitignore`, etc.) are automatically excluded to keep the package minimal.
+This script automatically bundles only the production-ready extension files inside `dev/Gemini_Mass_Delete_Extension.zip` (or inside a custom folder, e.g. `python3 dev/zip_extension.py ../output`). All development assets, documentation files, and git configuration files (`art/`, `dev/`, `README.md`, `CHANGELOG.md`, `LICENSE`, `.git/`, `.gitignore`, etc.) are automatically excluded to keep the package minimal.
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Contributing
 

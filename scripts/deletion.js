@@ -3,6 +3,7 @@
   "use strict";
 
   window.startDeletionProcess = async () => {
+    if (window.GbdState.isDeleting) return; // A deletion run is already in progress
     const checkedBoxes = Array.from(document.querySelectorAll(".gbd-chat-checkbox:checked")).reverse();
     if (checkedBoxes.length === 0) return;
 

@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 import os
+import sys
 import zipfile
 
-def zip_extension():
+def zip_extension(output_dir=None):
     # The script is located in "Gemini Mass Delete Extension/dev"
     # The source directory is the parent directory of this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     source_dir = os.path.dirname(script_dir)
     
-    # Generate the zip file inside the dev directory
-    output_filename = os.path.join(script_dir, "Gemini_Mass_Delete_Extension.zip")
+    # Generate the zip file inside the dev directory by default,
+    # or inside the directory passed as the first CLI argument
+    target_dir = os.path.abspath(output_dir) if output_dir else script_dir
+    os.makedirs(target_dir, exist_ok=True)
+    output_filename = os.path.join(target_dir, "Gemini_Mass_Delete_Extension.zip")
     
     if not os.path.exists(source_dir):
         print(f"Error: Source directory '{source_dir}' does not exist.")
@@ -23,6 +27,7 @@ def zip_extension():
         ".gitignore",
         ".gitattributes",
         "README.md",
+        "CHANGELOG.md",
         "PRIVACY_POLICY.md",
         "LICENSE",
         ".DS_Store"
@@ -57,4 +62,4 @@ def zip_extension():
     print(f"\nSuccessfully created '{output_filename}' with {count} files.")
 
 if __name__ == "__main__":
-    zip_extension()
+    zip_extension(sys.argv[1] if len(sys.argv) > 1 else None)

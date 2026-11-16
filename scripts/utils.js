@@ -34,6 +34,19 @@
     return null;
   };
 
+  // Selectors for the chats section header (toggle) button, newest Gemini markup first.
+  // Gemini dropped data-test-id="expandable-section-toggle" in a recent update, so we
+  // rely primarily on the stable aria-controls link to the chats content container.
+  window.CHATS_HEADER_SELECTORS = [
+    '[data-test-id="chats-expandable-section"] button.expandable-section-header',
+    'button.expandable-section-header[aria-controls="sidenav-section-content-chats"]',
+    'button[data-test-id="expandable-section-toggle"][aria-controls="sidenav-section-content-chats"]',
+    'button[aria-controls="sidenav-section-content-chats"]'
+  ];
+
+  // Retrieve the chats section header button (where our controls are injected)
+  window.getChatsHeaderButton = () => window.querySelectors(window.CHATS_HEADER_SELECTORS);
+
   // Find button by text or aria-label fallback
   window.findButtonByText = (terms, parent = document) => {
     if (!parent) return null;
